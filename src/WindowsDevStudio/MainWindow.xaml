@@ -36,9 +36,19 @@
                                VerticalAlignment="Center"
                                Margin="0,0,25,0"/>
 
-                    <Button Content="Open Folder"/>
-                    <Button Content="Open File"/>
-                    <Button Content="Save File"/>
+                    <Button Content="Open Folder"
+                            Click="OpenFolder_Click"
+                            Margin="0,0,8,0"
+                            Padding="14,7"/>
+
+                    <Button Content="Open File"
+                            Click="OpenFile_Click"
+                            Margin="0,0,8,0"
+                            Padding="14,7"/>
+
+                    <Button Content="Save File"
+                            Click="SaveFile_Click"
+                            Padding="14,7"/>
 
                 </StackPanel>
 
@@ -84,8 +94,10 @@
                                Foreground="{StaticResource MutedText}"
                                Margin="0,0,0,15"/>
 
-                    <TextBlock Text="No project opened"
-                               FontWeight="SemiBold"/>
+                    <TextBlock x:Name="WorkspaceName"
+                               Text="No project opened"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
 
                     <TextBlock Text="Open a project folder to see your files."
                                Foreground="{StaticResource MutedText}"
@@ -118,12 +130,14 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="CODE EDITOR"
+                    <TextBlock x:Name="EditorFileName"
+                               Text="CODE EDITOR"
                                FontWeight="Bold"
                                Foreground="{StaticResource MutedText}"
                                VerticalAlignment="Center"/>
 
-                    <TextBox Grid.Row="1"
+                    <TextBox x:Name="EditorText"
+                             Grid.Row="1"
                              AcceptsReturn="True"
                              AcceptsTab="True"
                              VerticalScrollBarVisibility="Auto"
@@ -135,6 +149,7 @@
                              Foreground="#DCE4EF"
                              BorderBrush="{StaticResource PanelBorder}"
                              Padding="12"
+                             SpellCheck.IsEnabled="False"
                              Text="Welcome to Windows Dev Studio&#x0a;&#x0a;Your coding workspace is ready.&#x0a;&#x0a;Open a project to begin."/>
 
                 </Grid>
@@ -214,7 +229,8 @@
 
             <DockPanel Margin="12,0">
 
-                <TextBlock Text="Ready"
+                <TextBlock x:Name="StatusText"
+                           Text="Ready"
                            Foreground="{StaticResource MutedText}"
                            VerticalAlignment="Center"/>
 
