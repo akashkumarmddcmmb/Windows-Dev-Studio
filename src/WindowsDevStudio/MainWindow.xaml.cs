@@ -508,22 +508,19 @@ public partial class MainWindow : Window
                 process.WaitForExit(1000);
             }
         }
-        catch (ObjectDisposedException)
+                catch (ObjectDisposedException)
         {
-            // Process already stopped.
+            // Process already disposed.
         }
         catch (System.ComponentModel.Win32Exception)
         {
             // Process could not be stopped.
         }
-        catch (ObjectDisposedException)
+        catch (InvalidOperationException)
         {
-            // Process already disposed.
+            // Process already stopped.
         }
-        finally
-        {
-            process.Dispose();
-        }
+        
     }
 
     private void RestartTerminal()
