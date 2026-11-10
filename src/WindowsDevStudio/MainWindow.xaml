@@ -45,10 +45,11 @@
                             Click="SaveFile_Click"/>
                 </StackPanel>
 
-                <TextBlock Text="Development Workspace"
-                           Foreground="{StaticResource MutedText}"
-                           VerticalAlignment="Center"
-                           HorizontalAlignment="Right"/>
+                <TextBlock x:Name="WorkspaceName"
+                            Text="Development Workspace"
+                            Foreground="{StaticResource MutedText}"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Right"/>
             </DockPanel>
         </Border>
 
