@@ -17,18 +17,15 @@
             <RowDefinition Height="28"/>
         </Grid.RowDefinitions>
 
-        <!-- Top Toolbar -->
+        <!-- Toolbar -->
         <Border Grid.Row="0"
                 Background="#171B22"
                 BorderBrush="{StaticResource PanelBorder}"
                 BorderThickness="0,0,0,1">
-
             <DockPanel Margin="15,0">
-
                 <StackPanel Orientation="Horizontal"
                             DockPanel.Dock="Left"
                             VerticalAlignment="Center">
-
                     <TextBlock Text="WINDOWS DEV STUDIO"
                                FontSize="16"
                                FontWeight="Bold"
@@ -38,31 +35,25 @@
 
                     <Button Content="Open Folder"
                             Click="OpenFolder_Click"
-                            Margin="0,0,8,0"
-                            Padding="14,7"/>
+                            Margin="0,0,8,0"/>
 
                     <Button Content="Open File"
                             Click="OpenFile_Click"
-                            Margin="0,0,8,0"
-                            Padding="14,7"/>
+                            Margin="0,0,8,0"/>
 
                     <Button Content="Save File"
-                            Click="SaveFile_Click"
-                            Padding="14,7"/>
-
+                            Click="SaveFile_Click"/>
                 </StackPanel>
 
                 <TextBlock Text="Development Workspace"
                            Foreground="{StaticResource MutedText}"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Right"/>
-
             </DockPanel>
         </Border>
 
-        <!-- Main Workspace -->
+        <!-- Workspace -->
         <Grid Grid.Row="1" Margin="10">
-
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="5"/>
@@ -87,24 +78,19 @@
                     CornerRadius="7"
                     Padding="12">
 
-                <StackPanel>
-
+                <DockPanel>
                     <TextBlock Text="PROJECT EXPLORER"
+                               DockPanel.Dock="Top"
                                FontWeight="Bold"
                                Foreground="{StaticResource MutedText}"
-                               Margin="0,0,0,15"/>
+                               Margin="0,0,0,12"/>
 
-                    <TextBlock x:Name="WorkspaceName"
-                               Text="No project opened"
-                               FontWeight="SemiBold"
-                               TextWrapping="Wrap"/>
-
-                    <TextBlock Text="Open a project folder to see your files."
-                               Foreground="{StaticResource MutedText}"
-                               TextWrapping="Wrap"
-                               Margin="0,10,0,0"/>
-
-                </StackPanel>
+                    <TreeView x:Name="ProjectTree"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              Foreground="{StaticResource PrimaryText}"
+                              MouseDoubleClick="ProjectTree_MouseDoubleClick"/>
+                </DockPanel>
             </Border>
 
             <GridSplitter Grid.Column="1"
@@ -114,7 +100,7 @@
                           HorizontalAlignment="Stretch"
                           Background="#252C38"/>
 
-            <!-- Code Editor -->
+            <!-- Editor -->
             <Border Grid.Column="2"
                     Grid.Row="0"
                     Background="{StaticResource PanelBackground}"
@@ -124,7 +110,6 @@
                     Padding="12">
 
                 <Grid>
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="35"/>
                         <RowDefinition Height="*"/>
@@ -151,7 +136,6 @@
                              Padding="12"
                              SpellCheck.IsEnabled="False"
                              Text="Welcome to Windows Dev Studio&#x0a;&#x0a;Your coding workspace is ready.&#x0a;&#x0a;Open a project to begin."/>
-
                 </Grid>
             </Border>
 
@@ -161,10 +145,9 @@
                           HorizontalAlignment="Stretch"
                           Background="#252C38"/>
 
-            <!-- Terminal -->
+            <!-- Terminal Placeholder -->
             <Border Grid.Column="2"
                     Grid.Row="2"
-                    Grid.ColumnSpan="3"
                     Background="#111318"
                     BorderBrush="{StaticResource PanelBorder}"
                     BorderThickness="1"
@@ -172,16 +155,14 @@
                     Padding="12">
 
                 <StackPanel>
-
                     <TextBlock Text="TERMINAL"
                                FontWeight="Bold"
                                Foreground="{StaticResource MutedText}"
                                Margin="0,0,0,12"/>
 
-                    <TextBlock Text="Terminal integration will be implemented in the next development stage."
+                    <TextBlock Text="PowerShell / CMD terminal integration is planned for the next development stage."
                                Foreground="{StaticResource MutedText}"
                                TextWrapping="Wrap"/>
-
                 </StackPanel>
             </Border>
 
@@ -202,7 +183,6 @@
                     Padding="12">
 
                 <StackPanel>
-
                     <TextBlock Text="AI ASSISTANT"
                                FontWeight="Bold"
                                Foreground="{StaticResource MutedText}"
@@ -212,13 +192,11 @@
                                FontWeight="SemiBold"
                                Margin="0,0,0,8"/>
 
-                    <TextBlock Text="AI provider connection will be configured in a future update."
+                    <TextBlock Text="AI provider connection will be configured after secure provider settings are implemented."
                                Foreground="{StaticResource MutedText}"
                                TextWrapping="Wrap"/>
-
                 </StackPanel>
             </Border>
-
         </Grid>
 
         <!-- Status Bar -->
@@ -228,7 +206,6 @@
                 BorderThickness="0,1,0,0">
 
             <DockPanel Margin="12,0">
-
                 <TextBlock x:Name="StatusText"
                            Text="Ready"
                            Foreground="{StaticResource MutedText}"
@@ -238,9 +215,7 @@
                            Foreground="{StaticResource MutedText}"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"/>
-
             </DockPanel>
         </Border>
-
     </Grid>
 </Window>
