@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -21,6 +22,9 @@ public partial class MainWindow : Window
     private bool _hasUnsavedChanges;
     private bool _isLoadingDocument;
 
+    private Process? _terminalProcess;
+    private string _terminalShell = "PowerShell";
+
     public MainWindow()
     {
         InitializeComponent();
@@ -28,7 +32,12 @@ public partial class MainWindow : Window
         EditorText.TextChanged += EditorText_TextChanged;
 
         UpdateWindowTitle();
+        StartTerminal("PowerShell");
     }
+
+    // ---------------------------------------------------------
+    // Window and Editor
+    // ---------------------------------------------------------
 
     private void EditorText_TextChanged(
         object sender,
@@ -74,10 +83,20 @@ public partial class MainWindow : Window
     protected override void OnClosing(CancelEventArgs e)
     {
         if (!ConfirmSaveChanges())
+        {
             e.Cancel = true;
+        }
+        else
+        {
+            StopTerminal();
+        }
 
         base.OnClosing(e);
     }
+
+    // ---------------------------------------------------------
+    // Project Folder
+    // ---------------------------------------------------------
 
     private void OpenFolder_Click(
         object sender,
@@ -109,6 +128,7 @@ public partial class MainWindow : Window
         _hasUnsavedChanges = false;
 
         EditorFileName.Text = "CODE EDITOR";
+
         WorkspaceName.Text = Path.GetFileName(
             _workspacePath.TrimEnd(
                 Path.DirectorySeparatorChar,
@@ -122,6 +142,8 @@ public partial class MainWindow : Window
         StatusText.Text = $"Workspace opened: {_workspacePath}";
 
         UpdateWindowTitle();
+
+        RestartTerminal();
     }
 
     private void LoadProjectTree()
@@ -234,10 +256,12 @@ public partial class MainWindow : Window
         object sender,
         MouseButtonEventArgs e)
     {
-        if (e.OriginalSource is not FrameworkElement element)
-            return;
+        DependencyObject? current = e.OriginalSource as DependencyObject;
 
-        if (element.DataContext is not TreeViewItem item)
+        while (current != null && current is not TreeViewItem)
+            current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+
+        if (current is not TreeViewItem item)
             return;
 
         if (item.Tag is not string filePath ||
@@ -248,6 +272,10 @@ public partial class MainWindow : Window
         OpenDocument(filePath);
         e.Handled = true;
     }
+
+    // ---------------------------------------------------------
+    // File Operations
+    // ---------------------------------------------------------
 
     private void OpenDocument(string filePath)
     {
@@ -372,5 +400,254 @@ public partial class MainWindow : Window
 
             return false;
         }
+    }
+
+    // ---------------------------------------------------------
+    // Windows Terminal
+    // ---------------------------------------------------------
+
+    private void StartTerminal(string shell)
+    {
+        StopTerminal();
+
+        _terminalShell = shell;
+
+        string workingDirectory =
+            !string.IsNullOrWhiteSpace(_workspacePath) &&
+            Directory.Exists(_workspacePath)
+                ? _workspacePath
+                : Environment.CurrentDirectory;
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = shell == "CMD" ? "cmd.exe" : "powershell.exe",
+            WorkingDirectory = workingDirectory,
+            UseShellExecute = false,
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+
+        if (shell == "CMD")
+        {
+            startInfo.ArgumentList.Add("/Q");
+            startInfo.ArgumentList.Add("/K");
+        }
+        else
+        {
+            startInfo.ArgumentList.Add("-NoLogo");
+            startInfo.ArgumentList.Add("-NoProfile");
+            startInfo.ArgumentList.Add("-NoExit");
+        }
+
+        try
+        {
+            var process = new Process
+            {
+                StartInfo = startInfo,
+                EnableRaisingEvents = true
+            };
+
+            process.OutputDataReceived += Terminal_OutputDataReceived;
+            process.ErrorDataReceived += Terminal_ErrorDataReceived;
+
+            if (!process.Start())
+            {
+                process.Dispose();
+                AppendTerminalText("Error: Terminal process could not start.");
+                return;
+            }
+
+            _terminalProcess = process;
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            TerminalShellLabel.Text = shell;
+
+            AppendTerminalText(
+                $"[{shell} started] Working directory: {workingDirectory}");
+
+            if (shell == "PowerShell")
+            {
+                SendTerminalCommand(
+                    $"Set-Location -LiteralPath '{workingDirectory.Replace("'", "''")}'");
+            }
+            else
+            {
+                SendTerminalCommand(
+                    $"cd /d \"{workingDirectory}\"");
+            }
+
+            StatusText.Text = $"{shell} terminal ready";
+            TerminalInput.Focus();
+        }
+        catch (Exception ex)
+        {
+            AppendTerminalText(
+                $"Terminal startup error: {ex.Message}");
+
+            StatusText.Text = "Terminal could not start";
+        }
+    }
+
+    private void StopTerminal()
+    {
+        Process? process = _terminalProcess;
+        _terminalProcess = null;
+
+        if (process == null)
+            return;
+
+        try
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                process.WaitForExit(1000);
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Process already stopped.
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            // Process could not be stopped.
+        }
+        catch (ObjectDisposedException)
+        {
+            // Process already disposed.
+        }
+        finally
+        {
+            process.Dispose();
+        }
+    }
+
+    private void RestartTerminal()
+    {
+        StartTerminal(_terminalShell);
+    }
+
+    private void SendTerminalCommand(string command)
+    {
+        Process? process = _terminalProcess;
+
+        if (process == null)
+        {
+            AppendTerminalText("Terminal is not running.");
+            return;
+        }
+
+        try
+        {
+            if (process.HasExited)
+            {
+                AppendTerminalText("Terminal process has exited. Restarting...");
+                StartTerminal(_terminalShell);
+                process = _terminalProcess;
+
+                if (process == null || process.HasExited)
+                    return;
+            }
+
+            process.StandardInput.WriteLine(command);
+            process.StandardInput.Flush();
+        }
+        catch (Exception ex)
+        {
+            AppendTerminalText($"Terminal input error: {ex.Message}");
+        }
+    }
+
+    private void TerminalInput_KeyDown(
+        object sender,
+        KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+            return;
+
+        e.Handled = true;
+
+        string command = TerminalInput.Text.Trim();
+
+        if (string.IsNullOrWhiteSpace(command))
+            return;
+
+        AppendTerminalText(
+            $"{(_terminalShell == "CMD" ? "C:\\>" : "PS>")} {command}");
+
+        TerminalInput.Clear();
+
+        SendTerminalCommand(command);
+    }
+
+    private void Terminal_OutputDataReceived(
+        object sender,
+        DataReceivedEventArgs e)
+    {
+        if (e.Data != null)
+            Dispatcher.BeginInvoke(
+                new Action(() => AppendTerminalText(e.Data)));
+    }
+
+    private void Terminal_ErrorDataReceived(
+        object sender,
+        DataReceivedEventArgs e)
+    {
+        if (e.Data != null)
+        {
+            Dispatcher.BeginInvoke(
+                new Action(() => AppendTerminalText(e.Data)));
+        }
+    }
+
+    private void AppendTerminalText(string text)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(
+                new Action(() => AppendTerminalText(text)));
+            return;
+        }
+
+        TerminalOutput.AppendText(text + Environment.NewLine);
+        TerminalOutput.ScrollToEnd();
+    }
+
+    private void PowerShell_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (_terminalShell == "PowerShell" &&
+            _terminalProcess != null &&
+            !_terminalProcess.HasExited)
+            return;
+
+        TerminalOutput.Clear();
+        StartTerminal("PowerShell");
+    }
+
+    private void CommandPrompt_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        if (_terminalShell == "CMD" &&
+            _terminalProcess != null &&
+            !_terminalProcess.HasExited)
+            return;
+
+        TerminalOutput.Clear();
+        StartTerminal("CMD");
+    }
+
+    private void ClearTerminal_Click(
+        object sender,
+        RoutedEventArgs e)
+    {
+        TerminalOutput.Clear();
+        TerminalInput.Focus();
     }
 }
