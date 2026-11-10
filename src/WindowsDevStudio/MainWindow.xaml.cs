@@ -1,9 +1,11 @@
 
 using Microsoft.Win32;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using MessageBox = System.Windows.MessageBox;
 
 namespace WindowsDevStudio;
 
@@ -11,27 +13,27 @@ public partial class MainWindow : Window
 {
     private string? _currentFilePath;
     private string? _workspacePath;
+
     private bool _hasUnsavedChanges;
+    private bool _isLoadingDocument;
 
     public MainWindow()
     {
         InitializeComponent();
 
         EditorText.TextChanged += EditorText_TextChanged;
+
+        UpdateWindowTitle();
     }
 
     private void EditorText_TextChanged(
         object sender,
         TextChangedEventArgs e)
     {
-        if (_currentFilePath is null)
-        {
-            _hasUnsavedChanges = true;
-        }
-        else
-        {
-            _hasUnsavedChanges = true;
-        }
+        if (_isLoadingDocument)
+            return;
+
+        _hasUnsavedChanges = true;
 
         UpdateWindowTitle();
     }
@@ -60,10 +62,20 @@ public partial class MainWindow : Window
         if (result == MessageBoxResult.Cancel)
             return false;
 
-        if (result == MessageBoxResult.Yes)
-            return SaveCurrentFile();
+        if (result == MessageBoxResult.No)
+            return true;
 
-        return true;
+        return SaveCurrentFile();
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (!ConfirmSaveChanges())
+        {
+            e.Cancel = true;
+        }
+
+        base.OnClosing(e);
     }
 
     private void OpenFolder_Click(
@@ -123,33 +135,42 @@ public partial class MainWindow : Window
             dialog.InitialDirectory = _workspacePath;
         }
 
-        if (dialog.ShowDialog() == true)
+        if (dialog.ShowDialog() != true)
+            return;
+
+        try
         {
+            string content = File.ReadAllText(dialog.FileName);
+
+            _isLoadingDocument = true;
+
             try
             {
-                string content =
-                    File.ReadAllText(dialog.FileName);
-
-                _currentFilePath = dialog.FileName;
                 EditorText.Text = content;
-                _hasUnsavedChanges = false;
-
-                EditorFileName.Text =
-                    Path.GetFileName(_currentFilePath);
-
-                StatusText.Text =
-                    $"Opened: {_currentFilePath}";
-
-                UpdateWindowTitle();
             }
-            catch (Exception ex)
+            finally
             {
-                MessageBox.Show(
-                    $"Could not open file.\n\n{ex.Message}",
-                    "Open File Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                _isLoadingDocument = false;
             }
+
+            _currentFilePath = dialog.FileName;
+            _hasUnsavedChanges = false;
+
+            EditorFileName.Text =
+                Path.GetFileName(_currentFilePath);
+
+            StatusText.Text =
+                $"Opened: {_currentFilePath}";
+
+            UpdateWindowTitle();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Could not open file.\n\n{ex.Message}",
+                "Open File Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 
@@ -162,7 +183,9 @@ public partial class MainWindow : Window
 
     private bool SaveCurrentFile()
     {
-        if (string.IsNullOrWhiteSpace(_currentFilePath))
+        string? targetPath = _currentFilePath;
+
+        if (string.IsNullOrWhiteSpace(targetPath))
         {
             var dialog = new SaveFileDialog
             {
@@ -182,15 +205,16 @@ public partial class MainWindow : Window
             if (dialog.ShowDialog() != true)
                 return false;
 
-            _currentFilePath = dialog.FileName;
+            targetPath = dialog.FileName;
         }
 
         try
         {
             File.WriteAllText(
-                _currentFilePath,
+                targetPath,
                 EditorText.Text);
 
+            _currentFilePath = targetPath;
             _hasUnsavedChanges = false;
 
             EditorFileName.Text =
