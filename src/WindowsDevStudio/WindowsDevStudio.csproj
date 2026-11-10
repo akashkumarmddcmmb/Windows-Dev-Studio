@@ -9,7 +9,7 @@
     <UseWindowsForms>true</UseWindowsForms>
 
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
 
     <RootNamespace>WindowsDevStudio</RootNamespace>
     <AssemblyName>WindowsDevStudio</AssemblyName>
