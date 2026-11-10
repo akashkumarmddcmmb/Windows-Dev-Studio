@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   build:
-    name: Build Windows Application
+    name: Build and Package Windows Application
     runs-on: windows-latest
 
     steps:
@@ -29,8 +29,28 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore Dependencies
-        run: dotnet restore WindowsDevStudio.sln
+      - name: Restore Windows Dependencies
+        run: >
+          dotnet restore
+          src/WindowsDevStudio/WindowsDevStudio.csproj
+          -r win-x64
 
-      - name: Build Application
-        run: dotnet build WindowsDevStudio.sln --configuration Release --no-restore
+      - name: Publish Windows EXE
+        run: >
+          dotnet publish
+          src/WindowsDevStudio/WindowsDevStudio.csproj
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --no-restore
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -o publish
+
+      - name: Upload Windows EXE Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Dev-Studio-win-x64
+          path: publish/
+          if-no-files-found: error
+          retention-days: 14
