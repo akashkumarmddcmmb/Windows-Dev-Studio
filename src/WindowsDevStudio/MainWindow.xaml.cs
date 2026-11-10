@@ -508,7 +508,7 @@ public partial class MainWindow : Window
                 process.WaitForExit(1000);
             }
         }
-        catch (InvalidOperationException)
+        catch (ObjectDisposedException)
         {
             // Process already stopped.
         }
