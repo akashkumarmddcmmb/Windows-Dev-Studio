@@ -46,10 +46,10 @@
                 </StackPanel>
 
                 <TextBlock x:Name="WorkspaceName"
-                            Text="Development Workspace"
-                            Foreground="{StaticResource MutedText}"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Right"/>
+                           Text="Development Workspace"
+                           Foreground="{StaticResource MutedText}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"/>
             </DockPanel>
         </Border>
 
@@ -66,7 +66,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="5"/>
-                <RowDefinition Height="210"/>
+                <RowDefinition Height="235"/>
             </Grid.RowDefinitions>
 
             <!-- Project Explorer -->
@@ -146,25 +146,102 @@
                           HorizontalAlignment="Stretch"
                           Background="#252C38"/>
 
-            <!-- Terminal Placeholder -->
+            <!-- Real Windows Terminal -->
             <Border Grid.Column="2"
                     Grid.Row="2"
                     Background="#111318"
                     BorderBrush="{StaticResource PanelBorder}"
                     BorderThickness="1"
                     CornerRadius="7"
-                    Padding="12">
+                    Padding="10">
 
-                <StackPanel>
-                    <TextBlock Text="TERMINAL"
-                               FontWeight="Bold"
-                               Foreground="{StaticResource MutedText}"
-                               Margin="0,0,0,12"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="36"/>
+                    </Grid.RowDefinitions>
 
-                    <TextBlock Text="PowerShell / CMD terminal integration is planned for the next development stage."
-                               Foreground="{StaticResource MutedText}"
-                               TextWrapping="Wrap"/>
-                </StackPanel>
+                    <!-- Terminal Toolbar -->
+                    <DockPanel Grid.Row="0"
+                               LastChildFill="False">
+
+                        <TextBlock Text="TERMINAL"
+                                   FontWeight="Bold"
+                                   Foreground="{StaticResource MutedText}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,0"/>
+
+                        <TextBlock x:Name="TerminalShellLabel"
+                                   Text="PowerShell"
+                                   Foreground="{StaticResource Accent}"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,12,0"/>
+
+                        <StackPanel Orientation="Horizontal"
+                                    DockPanel.Dock="Right">
+
+                            <Button Content="PowerShell"
+                                    Click="PowerShell_Click"
+                                    Margin="0,0,6,0"
+                                    Padding="8,3"/>
+
+                            <Button Content="CMD"
+                                    Click="CommandPrompt_Click"
+                                    Margin="0,0,6,0"
+                                    Padding="8,3"/>
+
+                            <Button Content="Clear"
+                                    Click="ClearTerminal_Click"
+                                    Padding="8,3"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- Terminal Output -->
+                    <TextBox x:Name="TerminalOutput"
+                             Grid.Row="1"
+                             IsReadOnly="True"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             FontFamily="Consolas"
+                             FontSize="12"
+                             Background="#0B0D11"
+                             Foreground="#DCE4EF"
+                             BorderThickness="0"
+                             Padding="6"
+                             IsTabStop="False"/>
+
+                    <!-- Terminal Input -->
+                    <Border Grid.Row="2"
+                            Background="#191E27"
+                            BorderBrush="{StaticResource PanelBorder}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Margin="0,5,0,0">
+
+                        <DockPanel>
+                            <TextBlock Text="&gt;"
+                                       Foreground="{StaticResource Accent}"
+                                       FontFamily="Consolas"
+                                       FontSize="14"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,8,0"/>
+
+                            <TextBox x:Name="TerminalInput"
+                                     Background="Transparent"
+                                     Foreground="#FFFFFF"
+                                     BorderThickness="0"
+                                     FontFamily="Consolas"
+                                     FontSize="13"
+                                     VerticalContentAlignment="Center"
+                                     CaretBrush="White"
+                                     KeyDown="TerminalInput_KeyDown"/>
+                        </DockPanel>
+                    </Border>
+                </Grid>
             </Border>
 
             <GridSplitter Grid.Column="3"
