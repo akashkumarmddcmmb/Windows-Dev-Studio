@@ -1,0 +1,38 @@
+
+<Application x:Class="WindowsDevStudio.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+
+    <Application.Resources>
+
+        <!-- Application Theme -->
+        <SolidColorBrush x:Key="AppBackground" Color="#111318"/>
+        <SolidColorBrush x:Key="PanelBackground" Color="#191D25"/>
+        <SolidColorBrush x:Key="PanelBorder" Color="#2B313D"/>
+
+        <!-- Text Colors -->
+        <SolidColorBrush x:Key="PrimaryText" Color="#E8ECF3"/>
+        <SolidColorBrush x:Key="MutedText" Color="#9AA4B2"/>
+
+        <!-- Accent Color -->
+        <SolidColorBrush x:Key="Accent" Color="#6EA8FE"/>
+
+        <!-- Button Style -->
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="Background" Value="#252C38"/>
+            <Setter Property="BorderBrush" Value="#394354"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Text Style -->
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+        </Style>
+
+    </Application.Resources>
+
+</Application>
